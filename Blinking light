@@ -1,0 +1,35 @@
+.MODEL SMALL
+.STACK 100h
+.CODE
+START:
+    ; STEP 1: INITIALIZE 8255 (Port A = Input, Port B = Output)
+    MOV AL, 90h             ; Control configuration byte
+    MOV DX, 0006h           ; DX points to the Control Register address
+    OUT DX, AL              ; Initialize the PPI
+
+BLINK_LOOP:
+    ; STEP 2: TURN THE LED ON
+    MOV AL, 01h             ; Set bit 0 to 1
+    MOV DX, 0002h           ; DX points to Port B
+    OUT DX, AL              ; Send data to turn LED on
+    CALL DATA_DELAY         ; Hold LED on state
+
+    ; STEP 3: TURN THE LED OFF
+    MOV AL, 00h             ; Set bit 0 to 0
+    OUT DX, AL              ; Send data to turn LED off
+    CALL DATA_DELAY         ; Hold LED off state
+
+    JMP BLINK_LOOP          ; Repeat blinking process infinitely
+
+; --- TIMING REGULATION SUBROUTINE ---
+DATA_DELAY PROC
+    MOV CX, 0FFFFh          ; Outer delay loop counter
+OUTER:
+    MOV BX, 000Fh          ; Inner delay loop counter
+INNER:
+    DEC BX
+    JNZ INNER
+    LOOP OUTER
+    RET
+DATA_DELAY ENDP
+END START
