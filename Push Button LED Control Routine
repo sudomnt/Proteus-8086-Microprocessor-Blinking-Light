@@ -1,0 +1,33 @@
+.MODEL SMALL
+.STACK 100h
+.CODE
+START:
+    ; STEP 1: INITIALIZE 8255 (Port A = Input, Port B = Output)
+    MOV AL, 90h             
+    MOV DX, 0006h           
+    OUT DX, AL              
+
+CHECK_SWITCH:
+    ; STEP 2: SAMPLE DATA FROM PORT A
+    MOV DX, 0000h           ; DX points to Port A address
+    IN  AL, DX              ; Read raw button state byte
+
+    ; STEP 3: ISOLATE BUTTON PIN (BIT 0)
+    AND AL, 01h             ; Mask out all other pins
+    JZ BUTTON_NOT_PRESSED   ; If result is 0 (button unpressed), jump to turn LED off
+
+BUTTON_PRESSED:
+    ; STEP 4: ILLUMINATE LED
+    MOV AL, 01h             ; Load active-high bit
+    MOV DX, 0002h           ; DX points to Port B
+    OUT DX, AL              ; Write data to turn LED on
+    JMP CHECK_SWITCH        ; Loop back to scan button state
+
+BUTTON_NOT_PRESSED:
+    ; STEP 5: DEACTIVATE LED
+    MOV AL, 00h             ; Load low state bit
+    MOV DX, 0002h           ; DX points to Port B
+    OUT DX, AL              ; Write data to turn LED off
+    JMP CHECK_SWITCH        ; Loop back to scan button state
+
+END START
